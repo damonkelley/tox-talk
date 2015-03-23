@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+  <meta name="viewport" content="width=1024, user-scalable=no">
+
+  <title>Your deck.js Presentation</title>
+
+  <!-- Required stylesheet -->
+  <link rel="stylesheet" href="core/deck.core.css">
+
+  <!-- Extension CSS files go here. Remove or add as needed. -->
+  <link rel="stylesheet" media="screen" href="extensions/goto/deck.goto.css">
+  <link rel="stylesheet" media="screen" href="extensions/menu/deck.menu.css">
+  <link rel="stylesheet" media="screen" href="extensions/navigation/deck.navigation.css">
+  <link rel="stylesheet" media="screen" href="extensions/status/deck.status.css">
+  <link rel="stylesheet" media="screen" href="extensions/scale/deck.scale.css">
+
+  <link rel="stylesheet" href="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/zenburn.min.css">
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+  <script>
+    hljs.initHighlightingOnLoad();
+  </script>
+
+  <!-- Style theme. More available in /themes/style/ or create your own. -->
+  <link rel="stylesheet" media="screen" href="themes/style/swiss.css">
+
+  <!-- Transition theme. More available in /themes/transition/ or create your own. -->
+  <link rel="stylesheet" media="screen" href="themes/transition/horizontal-slide.css">
+
+  <!-- Basic black and white print styles -->
+  <link rel="stylesheet" media="print" href="core/print.css">
+
+  <!-- Required Modernizr file -->
+  <script src="modernizr.custom.js"></script>
+  <style>
+    pre{
+        border-color: transparent;
+        padding: 0;
+        margin: 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="deck-container">
+
+    <!-- Begin slides. Just make elements with a class of slide. -->
+
+    <section class="slide">
+      <h1>Tox</h1>
+    </section>
+
+    <section class="slide">
+      <h2>Tox</h2>
+      <p>Tox is a generic virtualenv management and test command line tool you can use for:</p>
+      <ul>
+          <li>checking your package installs correctly with different Python versions and interpreters</li>
+          <li>running your tests in each of the environments, configuring your test tool of choice</li>
+          <li>acting as a frontend to Continuous Integration servers, greatly reducing boilerplate and merging CI and shell-based testing.</li>
+      </ul>
+    </section>
+
+    <section class="slide">
+      <h2>How is this useful?</h2>
+      <h3>Tox is most useful when distrubuting code.</h3>
+        <ul>
+            <li>When we develop code that is eventually distributed, it is generally done in a static environment, where the dependencies are not always obvious.</li>
+            <li>Not everyone is using the same (major) version of Python</li>
+            <li>Ensures confidence in the dependency requirements that we make available to end users</li>
+        </ul>
+        <p>But it can also be useful in upgrading our codebase to work with Python 3, while still maintaining Python 2.x compat. if that is the boat you currently live in.</p>
+    </section>
+
+    <section class="slide">
+        <h2>When to use Tox</h2>
+        <h3>Use Tox for</h3>
+        <ul>
+            <li>Web Application modules (Django calls them Apps)</li>
+            <li>Libraries</li>
+            <li>Any project that does require a setup.py</li>
+        </ul>
+
+        <h3>You probably don't need to use Tox for</h3>
+        <ul>
+            <li>Django Projects (Not Django Apps)</li>
+            <li>Any project that doesn't require a setup.py</li>
+        </ul>
+    </section>
+
+    <section class="slide">
+        <h2>What you need</h2>
+        <ul>
+            <li>setup.py</li>
+            <li>tests</li>
+            <li>tox.ini</li>
+        </ul>
+    </section>
+
+    <section class="slide">
+        <h1>tox.ini</h1>
+    </section>
+
+    <section class="slide">
+        <h2>tox.ini</h2>
+        <h3>Basic Example</h3>
+      <pre>
+          <code class="ini">
+[tox]
+envlist =
+    py27, ;create an env with Python 2.7
+    py34  ;create another env with Python 3.4
+
+[testenv]
+;install pytest v2.8.0 to both environments
+deps = pytest==2.8.0
+
+;the command tox will issue to execute the tests
+commands = py.test
+          </code>
+      </pre>
+      <p><em>Basic tox.ini config that runs tests with Python 2.7 AND Python 3.4</em></p>
+      <h2>Running the tests</h2>
+      <p>Just issue the <em>tox</em> command</p>
+      <pre>
+          <code class="shell">
+$ tox
+          </code>
+      </pre>
+    </section>
+
+    <section class="slide">
+        <h2>tox.ini</h2>
+        <h3>A little bit more configuration</h3>
+      <pre>
+          <code class="ini">
+[tox]
+envlist =
+    py27,
+    py34,  
+    flake8 ; a custom env
+
+[testenv]
+;install deps listed in the requirements file.
+deps = -rrequirements.txt
+commands = py.test       
+
+[testenv:flake8] ;this is where we define just the flake8 env
+deps = flake8
+commands = flake8 project tests setup.py
+
+          </code>
+      </pre>
+      <p>Now, in addition to running our tests with multiple versions of Python, we are also testing for issues with the code style/formatting.</p>
+    </section>
+
+
+    <section class="slide">
+        <h2>tox.ini</h2>
+        <h3>A lot more configuration!</h3>
+        <p>Just like we can test against multiple versions of python, we can also test against multiple versions of our dependencies. In this case, Django</p>
+      <pre>
+          <code class="ini">
+[pytest] ; pytest configuration. this tox does not use these.
+addopts = --reuse-db
+DJANGO_SETTINGS_MODULE = tests.settings.test
+django_find_project = false
+
+[tox]
+envlist =
+    py27-flake8,
+    {py27,py34}-django{16,17,18beta} ; use generative list declaration
+
+[testenv]
+deps = 
+    django14: Django==1.4.16 ; define the factors used in the generative list declarations above
+    django15: Django==1.5.11
+    django16: Django==1.6.8
+    django17: Django==1.7.1
+    ; Get the beta version which is not yet available on PyPI
+    django18beta: https://www.djangoproject.com/download/1.8b1/tarball/
+    -e.
+    -rrequirements/requirements-base.txt ; Multiple requirements files.
+    -rrequirements/requirements-test.txt
+    -rrequirements/requirements-common.txt
+commands = ./runtests.py --fast
+
+[testenv:py27-flake8]
+deps =
+    -rrequirements/requirements-codestyle.txt
+    -rrequirements/requirements-test.txt
+commands = ./runtests.py --lintonly
+
+          </code>
+      </pre>
+      <p><em>Taken from the current version of <a target="_blank" href="http://github.com/unt-libraries/django-name">unt-libraries/django-name</a>.</em></p>
+  </section>
+  <section class="slide">
+    <h2>What do we get?</h2>
+      <p>The previous config defines 7 environments in which our tests will be run</p>
+      <ol>
+          <li><strong>py27-flake8</strong> - Python 2.7 to run Flake 8 against our codebase</li>
+          <li><strong>py27-django16</strong> - Python 2.7 with Django 1.6</li>
+          <li><strong>py27-django17</strong> - Python 2.7 with Django 1.7</li>
+          <li><strong>py27-django18beta</strong> - Python 2.7 with Django 1.8 Beta</li>
+          <li><strong>py34-django16</strong> - Python 3.4 with Django 1.6</li>
+          <li><strong>py34-django17</strong> - Python 3.4 with Django 1.7</li>
+          <li><strong>py34-django18beta</strong> - Python 3.4 with Django 1.8 Beta</li>
+      </ol>
+    </section>
+
+    <section class="slide">
+        <h2>Tox</h2>
+        
+        <p>Documentation: <a href="https://tox.readthedocs.org/en/latest/">http://tox.readthedocs.org</a></p>
+    </section>
+
+    <!-- Begin extension snippets. Add or remove as needed. -->
+
+    <!-- deck.navigation snippet -->
+    <div aria-role="navigation">
+      <a href="#" class="deck-prev-link" title="Previous">&#8592;</a>
+      <a href="#" class="deck-next-link" title="Next">&#8594;</a>
+    </div>
+
+    <!-- deck.status snippet -->
+    <p class="deck-status" aria-role="status">
+      <span class="deck-status-current"></span>
+      /
+      <span class="deck-status-total"></span>
+    </p>
+
+    <!-- deck.goto snippet -->
+    <form action="." method="get" class="goto-form">
+      <label for="goto-slide">Go to slide:</label>
+      <input type="text" name="slidenum" id="goto-slide" list="goto-datalist">
+      <datalist id="goto-datalist"></datalist>
+      <input type="submit" value="Go">
+    </form>
+
+    <!-- End extension snippets. -->
+  </div>
+
+<!-- Required JS files. -->
+<script src="jquery.min.js"></script>
+<script src="core/deck.core.js"></script>
+
+<!-- Extension JS files. Add or remove as needed. -->
+<script src="extensions/menu/deck.menu.js"></script>
+<script src="extensions/goto/deck.goto.js"></script>
+<script src="extensions/status/deck.status.js"></script>
+<script src="extensions/navigation/deck.navigation.js"></script>
+<script src="extensions/scale/deck.scale.js"></script>
+
+<!-- Initialize the deck. You can put this in an external file if desired. -->
+<script>
+  $(function() {
+    $.deck('.slide');
+  });
+</script>
+</body>
+</html>
